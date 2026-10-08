@@ -1,0 +1,5 @@
+# Format akun.txt
+# Satu akun per baris: email|password
+# Baris dengan # di awal akan diabaikan (komentar)
+
+mail@gmail.com|pass

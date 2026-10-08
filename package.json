@@ -1,0 +1,16 @@
+{
+  "name": "atria-auto-register",
+  "version": "1.0.0",
+  "description": "Auto register Atria API account",
+  "main": "register.js",
+  "scripts": {
+    "start": "node register.js",
+    "test": "node register.js"
+  },
+  "dependencies": {
+    "puppeteer": "npm:rebrowser-puppeteer@^24.8.1",
+    "puppeteer-extra": "^3.3.6",
+    "puppeteer-extra-plugin-stealth": "^2.11.2",
+    "puppeteer-core": "npm:rebrowser-puppeteer-core@^24.8.1"
+  }
+}
