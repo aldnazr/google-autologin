@@ -12,5 +12,8 @@
     "puppeteer-extra": "^3.3.6",
     "puppeteer-extra-plugin-stealth": "^2.11.2",
     "puppeteer-core": "npm:rebrowser-puppeteer-core@^24.8.1"
+  },
+  "allowScripts": {
+    "rebrowser-puppeteer@24.8.1": true
   }
 }
