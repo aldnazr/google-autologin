@@ -116,6 +116,23 @@ async function clearBrowserData(page, tag = "") {
   }
 }
 
+function getEnvPassword() {
+  try {
+    const envPath = path.join(__dirname, ".env");
+    if (!fs.existsSync(envPath)) return process.env["9routerPassword"] || "";
+    const content = fs.readFileSync(envPath, "utf-8");
+    for (const line of content.split("\n")) {
+      const trimmed = line.trim();
+      if (trimmed.startsWith("9routerPassword=")) {
+        return trimmed.substring("9routerPassword=".length).trim();
+      }
+    }
+    return process.env["9routerPassword"] || "";
+  } catch (_) {
+    return "";
+  }
+}
+
 function readAccounts() {
   if (!fs.existsSync(CONFIG.accountFile)) {
     console.error("Error: account.txt tidak ditemukan!");
@@ -483,6 +500,54 @@ async function registerOne(browser, account, index, total) {
       console.log(
         `\n${tag} ✅ Login Google BERHASIL! Sesi aktif untuk: ${account.email}`,
       );
+
+      // Step 5: Redirect ke http://localhost:20128/login & input password dari .env
+      console.log(`${tag} [5] Navigasi ke http://localhost:20128/login...`);
+      await page.goto("http://localhost:20128/login", {
+        waitUntil: "networkidle2",
+        timeout: 20000,
+      }).catch(() => null);
+      await waitForPageFullyLoaded(page, tag);
+
+      const envPassword = getEnvPassword();
+      if (envPassword) {
+        console.log(`${tag} [6] Input sandi dari .env...`);
+        let passInput = null;
+        const passSelectors = [
+          'input[type="password"]',
+          'input[name="password"]',
+          'input[type="text"]',
+          'input',
+        ];
+        for (const sel of passSelectors) {
+          try {
+            passInput = await page.waitForSelector(sel, {
+              visible: true,
+              timeout: 5000,
+            });
+            if (passInput) break;
+          } catch (_) {}
+        }
+
+        if (passInput) {
+          await passInput.click({ clickCount: 3 });
+          await sleep(200);
+          await passInput.type(envPassword, { delay: 50 });
+          await sleep(500);
+          await page.keyboard.press("Enter");
+          await clickByText(
+            page,
+            ["login", "masuk", "submit", "sign in"],
+            "button, input[type='submit']",
+          ).catch(() => null);
+          await waitForPageFullyLoaded(page, tag);
+        } else {
+          console.log(
+            `${tag}     [WARN] Input sandi tidak ditemukan di http://localhost:20128/login`,
+          );
+        }
+      }
+
       success = true;
       appendResult(account.email, "SUCCESS");
       removeAccount(account.email);
