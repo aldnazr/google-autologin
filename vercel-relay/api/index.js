@@ -4,13 +4,17 @@ export const config = {
   },
 };
 
-const DEFAULT_TARGET = process.env.TARGET_URL || "https://api.atria-asi.ai";
+const DEFAULT_TARGET =
+  process.env.VERCEL_RELAY_TARGET_URL || "https://api.atria-asi.ai";
 
 export default async function handler(req, res) {
   // CORS Preflight
   if (req.method === "OPTIONS") {
     res.setHeader("Access-Control-Allow-Origin", "*");
-    res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,PATCH,DELETE,OPTIONS");
+    res.setHeader(
+      "Access-Control-Allow-Methods",
+      "GET,POST,PUT,PATCH,DELETE,OPTIONS",
+    );
     res.setHeader("Access-Control-Allow-Headers", "*");
     return res.status(200).end();
   }
@@ -46,7 +50,9 @@ export default async function handler(req, res) {
     });
 
     for (const [key, value] of response.headers.entries()) {
-      if (!["content-encoding", "transfer-encoding"].includes(key.toLowerCase())) {
+      if (
+        !["content-encoding", "transfer-encoding"].includes(key.toLowerCase())
+      ) {
         res.setHeader(key, value);
       }
     }

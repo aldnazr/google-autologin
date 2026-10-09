@@ -134,7 +134,7 @@ function getEnvVar(key, fallback = "") {
 }
 
 function getEnvPassword() {
-  return getEnvVar("9routerPassword");
+  return getEnvVar("9ROUTER_PASSWORD");
 }
 
 function readAccounts() {
@@ -506,13 +506,15 @@ async function registerOne(browser, account, index, total) {
       );
 
       // Step 5: Redirect ke login URL dari .env
-      const baseUrl = getEnvVar("9routerBaseUrl", "http://localhost:20128");
+      const baseUrl = getEnvVar("9ROUTER_BASE_URL", "http://localhost:20128");
       const loginUrl = new URL("/login", baseUrl).toString();
       console.log(`${tag} [5] Navigasi ke ${loginUrl}...`);
-      await page.goto(loginUrl, {
-        waitUntil: "networkidle2",
-        timeout: 20000,
-      }).catch(() => null);
+      await page
+        .goto(loginUrl, {
+          waitUntil: "networkidle2",
+          timeout: 20000,
+        })
+        .catch(() => null);
       await waitForPageFullyLoaded(page, tag);
 
       const envPassword = getEnvPassword();
@@ -523,7 +525,7 @@ async function registerOne(browser, account, index, total) {
           'input[type="password"]',
           'input[name="password"]',
           'input[type="text"]',
-          'input',
+          "input",
         ];
         for (const sel of passSelectors) {
           try {
@@ -636,12 +638,7 @@ async function main() {
       browser = await launchBrowser();
     }
 
-    const success = await registerOne(
-      browser,
-      account,
-      i + 1,
-      accounts.length,
-    );
+    const success = await registerOne(browser, account, i + 1, accounts.length);
     results.push({ email: account.email, success });
 
     if (i < accounts.length - 1) {
