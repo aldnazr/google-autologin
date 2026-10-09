@@ -116,21 +116,25 @@ async function clearBrowserData(page, tag = "") {
   }
 }
 
-function getEnvPassword() {
+function getEnvVar(key, fallback = "") {
   try {
     const envPath = path.join(__dirname, ".env");
-    if (!fs.existsSync(envPath)) return process.env["9routerPassword"] || "";
+    if (!fs.existsSync(envPath)) return process.env[key] || fallback;
     const content = fs.readFileSync(envPath, "utf-8");
     for (const line of content.split("\n")) {
       const trimmed = line.trim();
-      if (trimmed.startsWith("9routerPassword=")) {
-        return trimmed.substring("9routerPassword=".length).trim();
+      if (trimmed.startsWith(`${key}=`)) {
+        return trimmed.substring(`${key}=`.length).trim() || fallback;
       }
     }
-    return process.env["9routerPassword"] || "";
+    return process.env[key] || fallback;
   } catch (_) {
-    return "";
+    return fallback;
   }
+}
+
+function getEnvPassword() {
+  return getEnvVar("9routerPassword");
 }
 
 function readAccounts() {
@@ -501,9 +505,11 @@ async function registerOne(browser, account, index, total) {
         `\n${tag} ✅ Login Google BERHASIL! Sesi aktif untuk: ${account.email}`,
       );
 
-      // Step 5: Redirect ke http://localhost:20128/login & input password dari .env
-      console.log(`${tag} [5] Navigasi ke http://localhost:20128/login...`);
-      await page.goto("http://localhost:20128/login", {
+      // Step 5: Redirect ke login URL dari .env
+      const baseUrl = getEnvVar("9routerBaseUrl", "http://localhost:20128");
+      const loginUrl = new URL("/login", baseUrl).toString();
+      console.log(`${tag} [5] Navigasi ke ${loginUrl}...`);
+      await page.goto(loginUrl, {
         waitUntil: "networkidle2",
         timeout: 20000,
       }).catch(() => null);
@@ -543,7 +549,7 @@ async function registerOne(browser, account, index, total) {
           await waitForPageFullyLoaded(page, tag);
         } else {
           console.log(
-            `${tag}     [WARN] Input sandi tidak ditemukan di http://localhost:20128/login`,
+            `${tag}     [WARN] Input sandi tidak ditemukan di ${loginUrl}`,
           );
         }
       }
