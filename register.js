@@ -252,6 +252,21 @@ function waitForBrowserClosed(browser) {
   });
 }
 
+const CHALLENGE_RE =
+  /\/signin\/v2\/challenge|\/challenge\/|\/speedbump|\/signin\/rejected/;
+
+async function waitForManualChallenge(page, tag, timeout = 300000) {
+  if (!CHALLENGE_RE.test(page.url())) return;
+  console.log(
+    `${tag}     [INFO] Verifikasi tambahan (nomor telepon/bot) terdeteksi. Selesaikan manual di browser...`,
+  );
+  const start = Date.now();
+  while (CHALLENGE_RE.test(page.url()) && Date.now() - start < timeout) {
+    await sleep(2000);
+  }
+  await waitForPageFullyLoaded(page, tag);
+}
+
 async function registerOne(browser, account, index, total) {
   const tag = `[${index}/${total}] ${account.email}`;
   console.log(`\n${"=".repeat(60)}`);
@@ -348,6 +363,8 @@ async function registerOne(browser, account, index, total) {
       }
       await waitForPageFullyLoaded(page, tag);
 
+      await waitForManualChallenge(page, tag);
+
       // Deteksi error email
       const emailError = await page.evaluate(() => {
         const errEl = document.querySelector(
@@ -434,6 +451,7 @@ async function registerOne(browser, account, index, total) {
           );
         }
         await waitForPageFullyLoaded(page, tag);
+        await waitForManualChallenge(page, tag);
 
         // Deteksi error password salah
         const passError = await page.evaluate(() => {
@@ -490,6 +508,8 @@ async function registerOne(browser, account, index, total) {
 
       await sleep(2000);
     }
+
+    await waitForManualChallenge(page, tag);
 
     // Buka halaman myaccount untuk verifikasi login
     await page.goto("https://myaccount.google.com/", {
